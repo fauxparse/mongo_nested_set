@@ -526,18 +526,18 @@ module MongoNestedSet
       end
 
       base_class.find(:all, scoped).each do |node|
+        node_updates = {}
         if (a..b).include? node.left
-          node.send :"#{left_column_name}=", node.left + d - b
+          node.update_column left_column_name, node.left + d - b
         elsif (c..d).include? node.left
-          node.send :"#{left_column_name}=", node.left + a - c
+          node.update_column left_column_name, node.left + a - c
         end
         if (a..b).include? node.right
-          node.send :"#{right_column_name}=", node.right + d - b
+          node.update_column right_column_name, node.right + d - b
         elsif (c..d).include? node.right
-          node.send :"#{right_column_name}=", node.right + a - c
+          node.update_column right_column_name, node.right + a - c
         end
-        node.send :"#{parent_column_name}=", new_parent if self.id == node.id
-        node.without_nested_set_callbacks(&:save!) if node.changed?
+        node.update_column parent_column_name, new_parent if self.id == node.id
       end
 
       target.reload_nested_set if target
@@ -549,6 +549,10 @@ module MongoNestedSet
       old_value, @skip_nested_set_callbacks = @skip_nested_set_callbacks || false, true
       yield self
       @skip_nested_set_callbacks = old_value
+    end
+    
+    def update_column(name, value)
+      base_class.collection.update({ :_id => id }, { '$set' => { name => value } })
     end
   end
 end

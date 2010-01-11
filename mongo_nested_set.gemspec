@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mongo_nested_set}
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Powell", "Brandon Keepers", "Daniel Morrison"]
@@ -13,10 +13,12 @@ Gem::Specification.new do |s|
   s.description = %q{Port of awesome_nested_set for MongoMapper}
   s.email = %q{fauxparse@gmail.com}
   s.files = [
-    "Rakefile",
+    ".gitignore",
+     "Rakefile",
      "VERSION",
      "init.rb",
      "lib/mongo_nested_set.rb",
+     "mongo_nested_set.gemspec",
      "rails/init.rb",
      "test/fixtures/category.rb",
      "test/nested_set_test.rb",
