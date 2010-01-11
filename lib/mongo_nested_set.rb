@@ -525,40 +525,7 @@ module MongoNestedSet
         else          target.send(parent_column_name)
       end
 
-      # base_class.collection.update({
-      #   left_column_name => { '$gte' => a },
-      #   left_column_name => { '$lte' => b }
-      # }, {
-      #   '$inc' => { left_column_name => d - b }
-      # }, :multi => true)
-      # base_class.collection.update({
-      #   left_column_name => { '$gte' => c },
-      #   left_column_name => { '$lte' => d }
-      # }, {
-      #   '$inc' => { left_column_name => a - c }
-      # }, :multi => true)
-      # base_class.collection.update({
-      #   right_column_name => { '$gte' => a },
-      #   right_column_name => { '$lte' => b }
-      # }, {
-      #   '$inc' => { right_column_name => d - b }
-      # }, :multi => true)
-      # base_class.collection.update({
-      #   right_column_name => { '$gte' => c },
-      #   right_column_name => { '$lte' => d }
-      # }, {
-      #   '$inc' => { right_column_name => a - c }
-      # }, :multi => true)
-      # base_class.collection.update({
-      #   :_id => self.id
-      # }, {
-      #   parent_column_name => new_parent
-      # })
-      
-      to_update = {}
-      
       base_class.find(:all, scoped).each do |node|
-        to_update_this_node = {}
         if (a..b).include? node.left
           node.send :"#{left_column_name}=", node.left + d - b
         elsif (c..d).include? node.left
@@ -572,25 +539,6 @@ module MongoNestedSet
         node.send :"#{parent_column_name}=", new_parent if self.id == node.id
         node.save_without_nested_set_callbacks if node.changed?
       end
-
-      # self.class.base_class.update_all([
-      #   "#{quoted_left_column_name} = CASE " +
-      #     "WHEN #{quoted_left_column_name} BETWEEN :a AND :b " +
-      #       "THEN #{quoted_left_column_name} + :d - :b " +
-      #     "WHEN #{quoted_left_column_name} BETWEEN :c AND :d " +
-      #       "THEN #{quoted_left_column_name} + :a - :c " +
-      #     "ELSE #{quoted_left_column_name} END, " +
-      #   "#{quoted_right_column_name} = CASE " +
-      #     "WHEN #{quoted_right_column_name} BETWEEN :a AND :b " +
-      #       "THEN #{quoted_right_column_name} + :d - :b " +
-      #     "WHEN #{quoted_right_column_name} BETWEEN :c AND :d " +
-      #       "THEN #{quoted_right_column_name} + :a - :c " +
-      #     "ELSE #{quoted_right_column_name} END, " +
-      #   "#{quoted_parent_column_name} = CASE " +
-      #     "WHEN id = :id THEN :new_parent " +
-      #     "ELSE #{quoted_parent_column_name} END",
-      #   {:a => a, :b => b, :c => c, :d => d, :id => self.id, :new_parent => new_parent}
-      # ], nested_set_scope.proxy_options[:conditions])
 
       target.reload_nested_set if target
       self.reload_nested_set
