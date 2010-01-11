@@ -537,7 +537,7 @@ module MongoNestedSet
           node.send :"#{right_column_name}=", node.right + a - c
         end
         node.send :"#{parent_column_name}=", new_parent if self.id == node.id
-        node.save_without_nested_set_callbacks if node.changed?
+        node.without_nested_set_callbacks(&:save!) if node.changed?
       end
 
       target.reload_nested_set if target
@@ -545,10 +545,10 @@ module MongoNestedSet
       run_callbacks(:after_move)
     end
     
-    def save_without_nested_set_callbacks
-      @skip_nested_set_callbacks = true
-      save!
-      @skip_nested_set_callbacks = false
+    def without_nested_set_callbacks(&block)
+      old_value, @skip_nested_set_callbacks = @skip_nested_set_callbacks || false, true
+      yield self
+      @skip_nested_set_callbacks = old_value
     end
   end
 end
