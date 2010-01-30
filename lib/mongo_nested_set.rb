@@ -525,13 +525,13 @@ module MongoNestedSet
         else          target.send(parent_column_name)
       end
 
-      base_class.find(:all, scoped).each do |node|
-        node_updates = {}
+      base_class.find(:all, scoped(:fields => [ left_column_name, right_column_name, parent_column_name ])).each do |node|
         if (a..b).include? node.left
           node.update_column left_column_name, node.left + d - b
         elsif (c..d).include? node.left
           node.update_column left_column_name, node.left + a - c
         end
+        
         if (a..b).include? node.right
           node.update_column right_column_name, node.right + d - b
         elsif (c..d).include? node.right
