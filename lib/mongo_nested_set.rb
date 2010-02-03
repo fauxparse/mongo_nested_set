@@ -75,11 +75,11 @@ module MongoNestedSet
 
     # Returns the first root
     def root
-      find :first, :parent_id => nil
+      first :parent_id => nil
     end
 
     def roots
-      find :all, :parent_id => nil, :order => "#{left_column_name} ASC"
+      all :parent_id => nil, :order => "#{left_column_name} ASC"
     end
     
     def valid?
@@ -87,7 +87,7 @@ module MongoNestedSet
     end
     
     def left_and_rights_valid?
-      find(:all).detect { |node|
+      all.detect { |node|
         node.send(left_column_name).nil? ||
         node.send(right_column_name).nil? ||
         node.send(left_column_name) >= node.send(right_column_name) ||
@@ -99,7 +99,7 @@ module MongoNestedSet
     end
     
     def no_duplicates_for_columns?
-      find(:all).inject(true) { |memo, node|
+      all.inject(true) { |memo, node|
         memo && [left_column_name, right_column_name].inject(true) { |v, column|
           v && count(node.scoped(column.to_sym => node.send(column))) == 1
         }
@@ -147,14 +147,14 @@ module MongoNestedSet
         # set left
         node.send(:"#{left_column_name}=", (indices[scope.call(node)] += 1))
         # find
-        find(:all, scope.call(node).merge(parent_column_name => node.id)).each{|n| set_left_and_rights.call(n) }
+        all(scope.call(node).merge(parent_column_name => node.id)).each { |n| set_left_and_rights.call(n) }
         # set right
         node.send(:"#{right_column_name}=", (indices[scope.call(node)] += 1))
         node.save!    
       end
                           
       # Find root node(s)
-      root_nodes = find(:all, { parent_column_name => nil, :order => "#{left_column_name}, #{right_column_name}, id" }).each do |root_node|
+      root_nodes = all(parent_column_name => nil, :order => "#{left_column_name}, #{right_column_name}, id").each do |root_node|
         # setup index for this scope
         indices[scope.call(root_node)] ||= 0
         set_left_and_rights.call(root_node)
@@ -278,12 +278,12 @@ module MongoNestedSet
 
     # Returns root
     def root
-      base_class.find :first, scoped(left_column_name => { '$lte' => left }, right_column_name => { '$gte' => right })
+      base_class.first scoped(left_column_name => { '$lte' => left }, right_column_name => { '$gte' => right })
     end
 
     # Returns the array of all parents and self
     def self_and_ancestors
-      base_class.find :all, scoped(left_column_name => { '$lte' => left }, right_column_name => { '$gte' => right })
+      base_class.all scoped(left_column_name => { '$lte' => left }, right_column_name => { '$gte' => right })
     end
 
     # Returns an array of all parents
@@ -293,7 +293,7 @@ module MongoNestedSet
 
     # Returns the array of all children of the parent, including self
     def self_and_siblings
-      base_class.find :all, scoped(parent_column_name => _parent_id)
+      base_class.all scoped(parent_column_name => _parent_id)
     end
 
     # Returns the array of all children of the parent, except self
@@ -314,7 +314,7 @@ module MongoNestedSet
 
     # Returns a set of itself and all of its nested children
     def self_and_descendants
-      base_class.find :all, scoped(left_column_name => { '$gte' => left }, right_column_name => { '$lte' => right })
+      base_class.all scoped(left_column_name => { '$gte' => left }, right_column_name => { '$lte' => right })
     end
 
     # Returns a set of all of its children and nested children
@@ -347,12 +347,12 @@ module MongoNestedSet
 
     # Find the first sibling to the left
     def left_sibling
-      base_class.find :first, scoped(parent_column_name => _parent_id, left_column_name => { '$lt' => left }, :order => "#{left_column_name} DESC")
+      base_class.first scoped(parent_column_name => _parent_id, left_column_name => { '$lt' => left }, :order => "#{left_column_name} DESC")
     end
 
     # Find the first sibling to the right
     def right_sibling
-      base_class.find :first, scoped(parent_column_name => _parent_id, left_column_name => { '$gt' => right }, :order => "#{left_column_name}")
+      base_class.first scoped(parent_column_name => _parent_id, left_column_name => { '$gt' => right }, :order => "#{left_column_name}")
     end
 
     # Shorthand method for finding the left sibling and moving to the left of it.
@@ -437,7 +437,7 @@ module MongoNestedSet
     # on creation, set automatically lft and rgt to the end of the tree
     def set_default_left_and_right
       unless @skip_nested_set_callbacks
-        maxright = base_class.find(:first, scoped(:order => "#{right_column_name} DESC")).try(right_column_name) || 0
+        maxright = base_class.first(scoped(:order => "#{right_column_name} DESC")).try(right_column_name) || 0
         # adds the new node to the right of all existing nodes
         self[left_column_name] = maxright + 1
         self[right_column_name] = maxright + 2
@@ -460,10 +460,10 @@ module MongoNestedSet
       
       # update lefts and rights for remaining nodes
       diff = right - left + 1
-      base_class.find(:all, scoped(left_column_name => { '$gt' => right })).each do |node|
+      base_class.all(scoped(left_column_name => { '$gt' => right })).each do |node|
         node.update_attributes left_column_name => node.left - diff
       end
-      base_class.find(:all, scoped(right_column_name => { '$gt' => right })).each do |node|
+      base_class.all(scoped(right_column_name => { '$gt' => right })).each do |node|
         node.update_attributes right_column_name => node.right - diff
       end
       
@@ -525,7 +525,7 @@ module MongoNestedSet
         else          target.send(parent_column_name)
       end
 
-      base_class.find(:all, scoped(:fields => [ left_column_name, right_column_name, parent_column_name ])).each do |node|
+      base_class.all(scoped(:fields => [ left_column_name, right_column_name, parent_column_name ])).each do |node|
         if (a..b).include? node.left
           node.update_column left_column_name, node.left + d - b
         elsif (c..d).include? node.left

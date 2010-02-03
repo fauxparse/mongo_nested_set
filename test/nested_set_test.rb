@@ -390,7 +390,7 @@ class AwesomeNestedSetTest < TestCaseClass
 
   def test_move_to_root
     categories(:child_2).move_to_root
-    assert_nil categories(:child_2).parent
+    assert categories(:child_2).parent.nil?
     assert_equal 0, categories(:child_2).level
     assert_equal 1, categories(:child_2_1).level
     assert_equal 1, categories(:child_2).left
@@ -688,8 +688,8 @@ class AwesomeNestedSetTest < TestCaseClass
     category = Category.create!(:name => "Child", :parent_id => categories(:child_2).id)
     assert_equal categories(:child_2), category.parent
     assert_equal categories(:child_2).id, category.parent_id
-    assert_not_nil category.left
-    assert_not_nil category.right
+    assert !category.left.nil?
+    assert !category.right.nil?
     assert Category.valid?
   end
 
@@ -697,17 +697,17 @@ class AwesomeNestedSetTest < TestCaseClass
     category = Category.create!(:name => "Child", :parent => categories(:child_2))
     assert_equal categories(:child_2), category.parent
     assert_equal categories(:child_2).id, category.parent_id
-    assert_not_nil category.left
-    assert_not_nil category.right
+    assert !category.left.nil?
+    assert !category.right.nil?
     assert Category.valid?
   end
 
   def test_assigning_parent_id_to_nil_on_create
     category = Category.create!(:name => "New Root", :parent_id => nil)
-    assert_nil category.parent
-    assert_nil category.parent_id
-    assert_not_nil category.left
-    assert_not_nil category.right
+    assert category.parent.nil?
+    assert category.parent_id.nil?
+    assert !category.left.nil?
+    assert !category.right.nil?
     assert Category.valid?
   end
 
@@ -733,8 +733,8 @@ class AwesomeNestedSetTest < TestCaseClass
     category = categories(:child_2_1)
     category.parent_id = nil
     category.save
-    assert_nil category.parent
-    assert_nil category.parent_id
+    assert category.parent.nil?
+    assert category.parent_id.nil?
     assert Category.valid?
   end
 
