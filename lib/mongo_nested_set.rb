@@ -269,7 +269,7 @@ module MongoNestedSet
     end
     
     def scope_hash
-      Hash[*Array(acts_as_nested_set_options[:scope]).collect { |s| [s, send(s)] }.flatten]
+      Hash[*Array(acts_as_nested_set_options[:scope]).collect { |s| [s, send(s)] }.flatten].merge(:order => "lft ASC")
     end
     
     def scoped(conditions = {})
